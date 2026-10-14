@@ -95,8 +95,24 @@ final class ClipboardStore: ObservableObject {
 
     func addFixedItem(_ text: String) {
         guard let validText = validated(text) else { return }
-        guard !fixedItems.contains(where: { $0.text == validText }) else { return }
+        guard !fixedItems.contains(where: {
+            !$0.containsFiles && $0.text == validText
+        }) else { return }
         fixedItems.append(ClipboardItem(text: validText))
+        save(fixedItems, key: fixedItemsKey)
+    }
+
+    func addFixedFiles(_ fileURLs: [URL]) {
+        guard !fileURLs.isEmpty else { return }
+        let standardizedURLs = fileURLs.map { $0.standardizedFileURL }
+        guard !fixedItems.contains(where: {
+            $0.fileURLs == standardizedURLs
+        }) else { return }
+
+        let title = standardizedURLs.map(\.lastPathComponent).joined(separator: ", ")
+        fixedItems.append(
+            ClipboardItem(text: title, fileURLs: standardizedURLs)
+        )
         save(fixedItems, key: fixedItemsKey)
     }
 
@@ -111,8 +127,11 @@ final class ClipboardStore: ObservableObject {
     }
 
     func pin(_ item: ClipboardItem) {
-        guard !item.containsFiles else { return }
-        addFixedItem(item.text)
+        if let fileURLs = item.fileURLs, !fileURLs.isEmpty {
+            addFixedFiles(fileURLs)
+        } else {
+            addFixedItem(item.text)
+        }
     }
 
     func removeRecentItem(id: UUID) {

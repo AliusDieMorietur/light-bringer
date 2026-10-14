@@ -4,7 +4,7 @@ A small native macOS menu-bar clipboard utility built with SwiftUI.
 
 ## Features
 
-- Fixed, reusable text snippets
+- Fixed, reusable text snippets and file selections
 - The 20 most recent unique text or file clipboard items
 - Click any item to copy it
 - Right-click an item to pin or delete it

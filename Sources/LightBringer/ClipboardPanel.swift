@@ -1,11 +1,13 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ClipboardPanel: View {
     @ObservedObject var store: ClipboardStore
     @State private var newFixedText = ""
     @State private var copiedItemID: UUID?
     @State private var isShowingClearFixedConfirmation = false
+    @State private var isShowingFilePicker = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -24,6 +26,14 @@ struct ClipboardPanel: View {
             footer
         }
         .frame(width: 380, height: 520)
+        .fileImporter(
+            isPresented: $isShowingFilePicker,
+            allowedContentTypes: [.item],
+            allowsMultipleSelection: true
+        ) { result in
+            guard case let .success(fileURLs) = result else { return }
+            store.addFixedFiles(fileURLs)
+        }
         .confirmationDialog(
             "Delete all fixed items?",
             isPresented: $isShowingClearFixedConfirmation,
@@ -86,7 +96,15 @@ struct ClipboardPanel: View {
                 }
                 .buttonStyle(.bordered)
                 .disabled(newFixedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                .help("Add fixed item")
+                .help("Add fixed text")
+
+                Button {
+                    isShowingFilePicker = true
+                } label: {
+                    Image(systemName: "doc.badge.plus")
+                }
+                .buttonStyle(.bordered)
+                .help("Add fixed files")
             }
         }
     }
@@ -148,7 +166,7 @@ struct ClipboardPanel: View {
         .buttonStyle(.plain)
         .help("Copy to clipboard")
         .contextMenu {
-            if !isFixed && !item.containsFiles {
+            if !isFixed {
                 Button("Pin") { store.pin(item) }
             }
             Button("Delete", role: .destructive) {

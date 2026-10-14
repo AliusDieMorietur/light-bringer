@@ -5,7 +5,7 @@ A small native macOS menu-bar clipboard utility built with SwiftUI.
 ## Features
 
 - Fixed, reusable text snippets
-- The 20 most recent unique plain-text clipboard items
+- The 20 most recent unique text or file clipboard items
 - Click any item to copy it
 - Right-click an item to pin or delete it
 - Local persistence with `UserDefaults`
@@ -24,7 +24,7 @@ Open `Package.swift` in Xcode and run the **LightBringer** scheme, or use:
 swift run LightBringer
 ```
 
-The clipboard history is stored locally in the app's user defaults. Only plain text up to 20,000 characters is recorded.
+The clipboard history is stored locally in the app's user defaults. Plain text up to 20,000 characters and copied file references are recorded.
 
 ## Build and install the app
 

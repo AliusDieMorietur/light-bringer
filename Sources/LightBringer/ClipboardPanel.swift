@@ -107,7 +107,7 @@ struct ClipboardPanel: View {
             }
 
             if store.recentItems.isEmpty {
-                emptyMessage("Copied text will appear here.")
+                emptyMessage("Copied text and files will appear here.")
             } else {
                 ForEach(store.recentItems) { item in
                     itemButton(item, isFixed: false)
@@ -118,7 +118,7 @@ struct ClipboardPanel: View {
 
     private func itemButton(_ item: ClipboardItem, isFixed: Bool) -> some View {
         Button {
-            store.copy(item.text)
+            store.copy(item)
             copiedItemID = item.id
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(1))
@@ -126,6 +126,11 @@ struct ClipboardPanel: View {
             }
         } label: {
             HStack(spacing: 9) {
+                if item.containsFiles {
+                    Image(systemName: item.fileURLs?.count == 1 ? "doc.fill" : "doc.on.doc.fill")
+                        .frame(width: 18)
+                        .foregroundStyle(.secondary)
+                }
                 Text(item.text)
                     .lineLimit(2)
                     .truncationMode(.tail)
@@ -143,7 +148,7 @@ struct ClipboardPanel: View {
         .buttonStyle(.plain)
         .help("Copy to clipboard")
         .contextMenu {
-            if !isFixed {
+            if !isFixed && !item.containsFiles {
                 Button("Pin") { store.pin(item) }
             }
             Button("Delete", role: .destructive) {
@@ -166,7 +171,7 @@ struct ClipboardPanel: View {
 
     private var footer: some View {
         HStack {
-            Text("Keeps the last 20 text copies")
+            Text("Keeps the last 20 clipboard items")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()

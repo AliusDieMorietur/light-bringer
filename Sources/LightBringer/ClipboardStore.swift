@@ -5,11 +5,20 @@ import Foundation
 struct ClipboardItem: Codable, Identifiable, Equatable {
     let id: UUID
     let text: String
+    let fileURLs: [URL]?
     let createdAt: Date
 
-    init(id: UUID = UUID(), text: String, createdAt: Date = Date()) {
+    var containsFiles: Bool { !(fileURLs?.isEmpty ?? true) }
+
+    init(
+        id: UUID = UUID(),
+        text: String,
+        fileURLs: [URL]? = nil,
+        createdAt: Date = Date()
+    ) {
         self.id = id
         self.text = text
+        self.fileURLs = fileURLs
         self.createdAt = createdAt
     }
 }
@@ -60,15 +69,28 @@ final class ClipboardStore: ObservableObject {
         guard currentChangeCount != lastChangeCount else { return }
         lastChangeCount = currentChangeCount
 
-        guard let text = pasteboard.string(forType: .string) else { return }
-        addToHistory(text)
+        if let fileURLs = pasteboard.readObjects(
+            forClasses: [NSURL.self],
+            options: [.urlReadingFileURLsOnly: true]
+        ) as? [URL], !fileURLs.isEmpty {
+            addFilesToHistory(fileURLs)
+        } else if let text = pasteboard.string(forType: .string) {
+            addToHistory(text)
+        }
     }
 
-    func copy(_ text: String) {
+    func copy(_ item: ClipboardItem) {
         pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-        lastChangeCount = pasteboard.changeCount
-        addToHistory(text)
+
+        if let fileURLs = item.fileURLs, !fileURLs.isEmpty {
+            pasteboard.writeObjects(fileURLs as [NSURL])
+            lastChangeCount = pasteboard.changeCount
+            addFilesToHistory(fileURLs)
+        } else {
+            pasteboard.setString(item.text, forType: .string)
+            lastChangeCount = pasteboard.changeCount
+            addToHistory(item.text)
+        }
     }
 
     func addFixedItem(_ text: String) {
@@ -89,6 +111,7 @@ final class ClipboardStore: ObservableObject {
     }
 
     func pin(_ item: ClipboardItem) {
+        guard !item.containsFiles else { return }
         addFixedItem(item.text)
     }
 
@@ -104,8 +127,37 @@ final class ClipboardStore: ObservableObject {
 
     private func addToHistory(_ text: String) {
         guard let validText = validated(text) else { return }
-        recentItems.removeAll { $0.text == validText }
-        recentItems.insert(ClipboardItem(text: validText), at: 0)
+        if let index = recentItems.firstIndex(where: {
+            !$0.containsFiles && $0.text == validText
+        }) {
+            // Preserve the ID so the copied checkmark remains visible after
+            // this item moves to the top of the recent list.
+            let existingItem = recentItems.remove(at: index)
+            recentItems.insert(existingItem, at: 0)
+        } else {
+            recentItems.insert(ClipboardItem(text: validText), at: 0)
+        }
+        trimAndSaveHistory()
+    }
+
+    private func addFilesToHistory(_ fileURLs: [URL]) {
+        let standardizedURLs = fileURLs.map { $0.standardizedFileURL }
+        if let index = recentItems.firstIndex(where: {
+            $0.fileURLs == standardizedURLs
+        }) {
+            let existingItem = recentItems.remove(at: index)
+            recentItems.insert(existingItem, at: 0)
+        } else {
+            let title = standardizedURLs.map(\.lastPathComponent).joined(separator: ", ")
+            recentItems.insert(
+                ClipboardItem(text: title, fileURLs: standardizedURLs),
+                at: 0
+            )
+        }
+        trimAndSaveHistory()
+    }
+
+    private func trimAndSaveHistory() {
         recentItems = Array(recentItems.prefix(maximumHistoryCount))
         save(recentItems, key: recentItemsKey)
     }

@@ -6,6 +6,7 @@ APP_NAME="Light Bringer"
 EXECUTABLE_NAME="LightBringer"
 BUNDLE_ID="com.local.lightbringer"
 APP_DIR="$ROOT_DIR/dist/$APP_NAME.app"
+ICON_SOURCE="$ROOT_DIR/Resources/AppIcon.svg"
 
 cd "$ROOT_DIR"
 echo "Building release executable…"
@@ -29,6 +30,8 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
     <string>$EXECUTABLE_NAME</string>
     <key>CFBundleIdentifier</key>
     <string>$BUNDLE_ID</string>
+    <key>CFBundleIconFile</key>
+    <string>LightBringer.icns</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
@@ -48,6 +51,23 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
 </dict>
 </plist>
 PLIST
+
+# Convert the source SVG into the multi-resolution macOS app icon.
+ICON_WORK_DIR="$(mktemp -d)"
+ICONSET="$ICON_WORK_DIR/AppIcon.iconset"
+mkdir -p "$ICONSET"
+sips -s format png -z 16 16 "$ICON_SOURCE" --out "$ICONSET/icon_16x16.png" >/dev/null
+sips -s format png -z 32 32 "$ICON_SOURCE" --out "$ICONSET/icon_16x16@2x.png" >/dev/null
+sips -s format png -z 32 32 "$ICON_SOURCE" --out "$ICONSET/icon_32x32.png" >/dev/null
+sips -s format png -z 64 64 "$ICON_SOURCE" --out "$ICONSET/icon_32x32@2x.png" >/dev/null
+sips -s format png -z 128 128 "$ICON_SOURCE" --out "$ICONSET/icon_128x128.png" >/dev/null
+sips -s format png -z 256 256 "$ICON_SOURCE" --out "$ICONSET/icon_128x128@2x.png" >/dev/null
+sips -s format png -z 256 256 "$ICON_SOURCE" --out "$ICONSET/icon_256x256.png" >/dev/null
+sips -s format png -z 512 512 "$ICON_SOURCE" --out "$ICONSET/icon_256x256@2x.png" >/dev/null
+sips -s format png -z 512 512 "$ICON_SOURCE" --out "$ICONSET/icon_512x512.png" >/dev/null
+sips -s format png -z 1024 1024 "$ICON_SOURCE" --out "$ICONSET/icon_512x512@2x.png" >/dev/null
+iconutil -c icns "$ICONSET" -o "$APP_DIR/Contents/Resources/LightBringer.icns"
+rm -rf "$ICON_WORK_DIR"
 
 # Ad-hoc signing is sufficient for installing the app on this Mac.
 codesign --force --sign - "$APP_DIR"

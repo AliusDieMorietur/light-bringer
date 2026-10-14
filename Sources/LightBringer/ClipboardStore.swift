@@ -116,6 +116,42 @@ final class ClipboardStore: ObservableObject {
         save(fixedItems, key: fixedItemsKey)
     }
 
+    func importFixedItems(from fileURL: URL) throws -> Int {
+        let hasAccess = fileURL.startAccessingSecurityScopedResource()
+        defer {
+            if hasAccess { fileURL.stopAccessingSecurityScopedResource() }
+        }
+
+        let data = try Data(contentsOf: fileURL)
+        let texts = try JSONDecoder().decode([String].self, from: data)
+        var importedCount = 0
+
+        for text in texts {
+            guard let validText = validated(text),
+                  !fixedItems.contains(where: {
+                      !$0.containsFiles && $0.text == validText
+                  }) else { continue }
+            fixedItems.append(ClipboardItem(text: validText))
+            importedCount += 1
+        }
+
+        if importedCount > 0 {
+            save(fixedItems, key: fixedItemsKey)
+        }
+        return importedCount
+    }
+
+    func exportFixedItems(to fileURL: URL) throws -> Int {
+        let texts = fixedItems
+            .filter { !$0.containsFiles }
+            .map(\.text)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+        let data = try encoder.encode(texts)
+        try data.write(to: fileURL, options: .atomic)
+        return texts.count
+    }
+
     func removeFixedItem(id: UUID) {
         fixedItems.removeAll { $0.id == id }
         save(fixedItems, key: fixedItemsKey)

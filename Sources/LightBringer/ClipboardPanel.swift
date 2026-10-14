@@ -8,6 +8,9 @@ struct ClipboardPanel: View {
     @State private var copiedItemID: UUID?
     @State private var isShowingClearFixedConfirmation = false
     @State private var isShowingFilePicker = false
+    @State private var isShowingPresetPicker = false
+    @State private var presetAlertTitle = "Import Preset"
+    @State private var presetMessage: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,6 +36,35 @@ struct ClipboardPanel: View {
         ) { result in
             guard case let .success(fileURLs) = result else { return }
             store.addFixedFiles(fileURLs)
+        }
+        .fileImporter(
+            isPresented: $isShowingPresetPicker,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            guard case let .success(fileURLs) = result,
+                  let fileURL = fileURLs.first else { return }
+            do {
+                let count = try store.importFixedItems(from: fileURL)
+                presetAlertTitle = "Import Preset"
+                presetMessage = count == 1
+                    ? "Imported 1 fixed item."
+                    : "Imported \(count) fixed items."
+            } catch {
+                presetAlertTitle = "Import Preset"
+                presetMessage = "The file must contain a JSON array of strings."
+            }
+        }
+        .alert(
+            presetAlertTitle,
+            isPresented: Binding(
+                get: { presetMessage != nil },
+                set: { if !$0 { presetMessage = nil } }
+            )
+        ) {
+            Button("OK") { presetMessage = nil }
+        } message: {
+            Text(presetMessage ?? "")
         }
         .confirmationDialog(
             "Delete all fixed items?",
@@ -105,6 +137,21 @@ struct ClipboardPanel: View {
                 }
                 .buttonStyle(.bordered)
                 .help("Add fixed files")
+
+                Button {
+                    isShowingPresetPicker = true
+                } label: {
+                    Image(systemName: "square.and.arrow.down")
+                }
+                .buttonStyle(.bordered)
+                .help("Import fixed items preset from JSON")
+
+                Button(action: exportPreset) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .buttonStyle(.bordered)
+                .disabled(!store.fixedItems.contains { !$0.containsFiles })
+                .help("Export fixed text items as JSON")
             }
         }
     }
@@ -203,5 +250,25 @@ struct ClipboardPanel: View {
     private func addFixedItem() {
         store.addFixedItem(newFixedText)
         newFixedText = ""
+    }
+
+    private func exportPreset() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.canCreateDirectories = true
+        panel.nameFieldStringValue = "light-bringer-preset.json"
+        panel.title = "Export Fixed Items Preset"
+
+        guard panel.runModal() == .OK, let fileURL = panel.url else { return }
+        do {
+            let count = try store.exportFixedItems(to: fileURL)
+            presetAlertTitle = "Export Preset"
+            presetMessage = count == 1
+                ? "Exported 1 fixed item."
+                : "Exported \(count) fixed items."
+        } catch {
+            presetAlertTitle = "Export Preset"
+            presetMessage = "The preset could not be saved."
+        }
     }
 }

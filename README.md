@@ -74,3 +74,7 @@ To build the DMG yourself:
 ```sh
 ./scripts/build-dmg.sh   # creates dist/LightBringer-<version>.dmg
 ```
+
+## License
+
+[MIT](LICENSE)

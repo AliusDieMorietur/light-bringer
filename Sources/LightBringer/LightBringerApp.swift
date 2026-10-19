@@ -18,7 +18,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let popover = NSPopover()
     private var rightClickMonitor: OptionRightClickMonitor?
-    private let menuItemLimit = 5
+    private let fixedMenuItemLimit = 20
+    private let recentMenuItemLimit = 5
     private let menuTitleLimit = 48
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -89,12 +90,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         addSection(
             "Fixed",
-            items: Array(clipboard.fixedItems.prefix(menuItemLimit)),
+            items: Array(clipboard.fixedItems.prefix(fixedMenuItemLimit)),
             to: menu
         )
         addSection(
             "Recent",
-            items: Array(clipboard.recentItems.prefix(menuItemLimit)),
+            items: Array(clipboard.recentItems.prefix(recentMenuItemLimit)),
             to: menu
         )
 

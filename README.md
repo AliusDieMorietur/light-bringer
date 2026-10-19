@@ -13,7 +13,7 @@ A small native macOS menu-bar clipboard utility built with SwiftUI.
 - The 20 most recent unique text or file clipboard items
 - Click any item to copy it
 - Right-click an item to pin or delete it
-- Right-click the menu-bar icon for the first 5 fixed and 5 most recent items; click one to copy it
+- Right-click the menu-bar icon for the first 20 fixed and 5 most recent items; click one to copy it
 - Option + right-click anywhere on screen opens the same menu at the cursor (asks for Accessibility permission)
 - Local persistence with `UserDefaults`
 - Menu-bar-only interface
@@ -48,7 +48,7 @@ Imported items are merged with existing fixed items; duplicates are skipped. Exp
 
 ### Quick menu
 
-Right-click the menu-bar icon, or hold **Option** and right-click anywhere on screen, to open a menu with the first 5 fixed items and the 5 most recent copies. Click an item to copy it.
+Right-click the menu-bar icon, or hold **Option** and right-click anywhere on screen, to open a menu with the first 20 fixed items and the 5 most recent copies. Click an item to copy it.
 
 Option + right-click needs the Accessibility permission so Light Bringer can intercept that click (plain right-clicks are never touched). Grant it in System Settings → Privacy & Security → Accessibility. Because the app is ad-hoc signed, macOS may reset the permission after a rebuild; remove and re-add Light Bringer in that list if the shortcut stops working.
 

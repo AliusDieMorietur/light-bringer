@@ -1,7 +1,7 @@
 import AppKit
 import ApplicationServices
 
-/// Watches for Option + right-click anywhere on screen and swallows that click
+/// Watches for Option + right-click or Command + right-click anywhere on screen and swallows that click
 /// so only Light Bringer's menu appears. Plain right-clicks pass through untouched.
 /// Requires the Accessibility permission to create the event tap.
 @MainActor
@@ -62,10 +62,11 @@ final class OptionRightClickMonitor {
             return Unmanaged.passUnretained(event)
         case .rightMouseDown, .rightMouseUp:
             let flags = event.flags
-            let isOptionOnly = flags.contains(.maskAlternate)
-                && !flags.contains(.maskCommand)
-                && !flags.contains(.maskControl)
-            guard isOptionOnly else { return Unmanaged.passUnretained(event) }
+            let hasOption = flags.contains(.maskAlternate)
+            let hasCommand = flags.contains(.maskCommand)
+            // Option or Command alone; combinations and Control pass through.
+            let isTrigger = hasOption != hasCommand && !flags.contains(.maskControl)
+            guard isTrigger else { return Unmanaged.passUnretained(event) }
 
             if type == .rightMouseDown {
                 // Show the menu after the callback returns; popUp blocks while tracking.

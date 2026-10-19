@@ -1,17 +1,6 @@
 import AppKit
 import SwiftUI
 
-@main
-struct LightBringerApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-
-    var body: some Scene {
-        Settings {
-            EmptyView()
-        }
-    }
-}
-
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let clipboard = ClipboardStore()

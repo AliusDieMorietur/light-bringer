@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let clipboard = ClipboardStore()
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let popover = NSPopover()
+    private var iconResetTask: Task<Void, Never>?
     private var rightClickMonitor: OptionRightClickMonitor?
     private let fixedMenuItemLimit = 20
     private let recentMenuItemLimit = 5
@@ -26,11 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         rightClickMonitor?.start()
 
         guard let button = statusItem.button else { return }
-        button.image = NSImage(
-            systemSymbolName: "doc.on.clipboard",
-            accessibilityDescription: "Light Bringer"
-        )
-        button.image?.isTemplate = true
+        button.image = Self.trayIcon
         button.toolTip = "Light Bringer"
         button.target = self
         button.action = #selector(statusItemClicked)
@@ -72,6 +69,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func copyFromMenu(_ sender: NSMenuItem) {
         guard let item = sender.representedObject as? ClipboardItem else { return }
         clipboard.copy(item)
+        flashCopiedIcon()
     }
 
     private func makeContextMenu() -> NSMenu {
@@ -142,6 +140,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .trimmingCharacters(in: .whitespaces)
         guard singleLine.count > menuTitleLimit else { return singleLine }
         return singleLine.prefix(menuTitleLimit) + "…"
+    }
+
+    private static let trayIcon: NSImage? = {
+        let image = NSImage(
+            systemSymbolName: "doc.on.clipboard",
+            accessibilityDescription: "Light Bringer"
+        )
+        image?.isTemplate = true
+        return image
+    }()
+
+    private static let copiedTrayIcon: NSImage? = {
+        let image = NSImage(
+            systemSymbolName: "checkmark",
+            accessibilityDescription: "Copied"
+        )
+        image?.isTemplate = true
+        return image
+    }()
+
+    private func flashCopiedIcon() {
+        guard let button = statusItem.button, let icon = Self.copiedTrayIcon else { return }
+        iconResetTask?.cancel()
+        button.image = icon
+        iconResetTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(1))
+            guard !Task.isCancelled else { return }
+            self?.statusItem.button?.image = Self.trayIcon
+        }
     }
 
     private func showContextMenuAtCursor() {

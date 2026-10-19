@@ -13,6 +13,7 @@ DMG_PATH="$ROOT_DIR/dist/LightBringer-$VERSION.dmg"
 STAGING="$(mktemp -d)"
 trap 'rm -rf "$STAGING"' EXIT
 cp -R "$APP_DIR" "$STAGING/"
+cp "$ROOT_DIR/LICENSE" "$STAGING/LICENSE"
 ln -s /Applications "$STAGING/Applications"
 
 rm -f "$DMG_PATH"

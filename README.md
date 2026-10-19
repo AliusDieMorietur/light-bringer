@@ -62,3 +62,15 @@ open "/Applications/Light Bringer.app"
 ```
 
 The script creates a release build, packages it as `dist/Light Bringer.app`, ad-hoc signs it for this Mac, and copies it to `/Applications`.
+
+## Download
+
+Grab the latest `LightBringer-<version>.dmg` from the [Releases](https://github.com/AliusDieMorietur/light-bringer/releases) page, open it, and drag **Light Bringer** into **Applications**.
+
+The app is ad-hoc signed, not notarized, so macOS blocks the first launch. Right-click the app and choose **Open**, or allow it in System Settings → Privacy & Security.
+
+To build the DMG yourself:
+
+```sh
+./scripts/build-dmg.sh   # creates dist/LightBringer-<version>.dmg
+```

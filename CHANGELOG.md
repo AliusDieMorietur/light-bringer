@@ -4,6 +4,8 @@ All notable changes to Light Bringer. Add entries under **Unreleased**; `scripts
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-26
+
 ### Added
 - Pin button on recent copies to save them to the fixed list.
 - Delete button on fixed items.

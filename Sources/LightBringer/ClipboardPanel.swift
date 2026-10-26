@@ -181,37 +181,60 @@ struct ClipboardPanel: View {
         }
     }
 
-    private func itemButton(_ item: ClipboardItem, isFixed: Bool) -> some View {
-        Button {
-            store.copy(item)
-            copiedItemID = item.id
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(1))
-                if copiedItemID == item.id { copiedItemID = nil }
-            }
-        } label: {
-            HStack(spacing: 9) {
-                if item.containsFiles {
-                    Image(systemName: item.fileURLs?.count == 1 ? "doc.fill" : "doc.on.doc.fill")
-                        .frame(width: 18)
-                        .foregroundStyle(.secondary)
-                }
-                Text(item.text)
-                    .lineLimit(2)
-                    .truncationMode(.tail)
-                    .multilineTextAlignment(.leading)
-                Spacer(minLength: 8)
-                Image(systemName: copiedItemID == item.id ? "checkmark" : "doc.on.doc")
-                    .frame(width: 18, height: 18)
-                    .foregroundStyle(copiedItemID == item.id ? Color.green : Color.secondary)
-            }
-            .contentShape(Rectangle())
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .background(Color.primary.opacity(0.055), in: RoundedRectangle(cornerRadius: 7))
+    private func copyItem(_ item: ClipboardItem) {
+        store.copy(item)
+        copiedItemID = item.id
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1))
+            if copiedItemID == item.id { copiedItemID = nil }
         }
-        .buttonStyle(.plain)
-        .help("Copy to clipboard")
+    }
+
+    private func itemButton(_ item: ClipboardItem, isFixed: Bool) -> some View {
+        let isCopied = copiedItemID == item.id
+        let isPinned = !isFixed && store.isFixed(item)
+
+        return HStack(spacing: 9) {
+            Button { copyItem(item) } label: {
+                HStack(spacing: 9) {
+                    if item.containsFiles {
+                        Image(systemName: item.fileURLs?.count == 1 ? "doc.fill" : "doc.on.doc.fill")
+                            .frame(width: 18)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text(item.text)
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                        .multilineTextAlignment(.leading)
+                    Spacer(minLength: 8)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Copy to clipboard")
+
+            if !isFixed {
+                Button { store.pin(item) } label: {
+                    Image(systemName: isPinned ? "pin.fill" : "pin")
+                        .frame(width: 18, height: 18)
+                        .foregroundStyle(isPinned ? Color.accentColor : Color.secondary)
+                }
+                .buttonStyle(.plain)
+                .disabled(isPinned)
+                .help(isPinned ? "Already in fixed items" : "Save to fixed items")
+            }
+
+            Button { copyItem(item) } label: {
+                Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                    .frame(width: 18, height: 18)
+                    .foregroundStyle(isCopied ? Color.green : Color.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Copy to clipboard")
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(Color.primary.opacity(0.055), in: RoundedRectangle(cornerRadius: 7))
         .contextMenu {
             if !isFixed {
                 Button("Pin") { store.pin(item) }

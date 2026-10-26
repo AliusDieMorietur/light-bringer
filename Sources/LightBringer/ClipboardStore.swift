@@ -162,6 +162,14 @@ final class ClipboardStore: ObservableObject {
         save(fixedItems, key: fixedItemsKey)
     }
 
+    func isFixed(_ item: ClipboardItem) -> Bool {
+        if item.containsFiles {
+            let urls = item.fileURLs?.map { $0.standardizedFileURL }
+            return fixedItems.contains { $0.fileURLs == urls }
+        }
+        return fixedItems.contains { !$0.containsFiles && $0.text == item.text }
+    }
+
     func pin(_ item: ClipboardItem) {
         if let fileURLs = item.fileURLs, !fileURLs.isEmpty {
             addFixedFiles(fileURLs)

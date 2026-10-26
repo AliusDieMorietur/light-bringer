@@ -47,6 +47,10 @@ Use the import button to choose a `.json` file containing an array of strings, o
 
 Imported items are merged with existing fixed items; duplicates are skipped. Export includes fixed text items only, because file references are machine-specific.
 
+### History files
+
+Each section has a **History** button that opens a plain-text log in your default editor. Fixed items log when they are added or removed; recent copies log every copy. Lines look like `timestamp<TAB>event<TAB>text` (newlines in the text are escaped as `\n`). Each file keeps at most 10,000 lines, dropping the oldest first. They live in `~/Library/Application Support/LightBringer/` as `fixed-history.txt` and `recent-history.txt`.
+
 ### Quick menu
 
 Right-click the menu-bar icon, or hold **Option** or **Command** and right-click anywhere on screen, to open a menu with the first 20 fixed items and the 5 most recent copies. Click an item to copy it; the menu-bar icon turns into a check mark for a second to confirm.

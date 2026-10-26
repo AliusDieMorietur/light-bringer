@@ -35,6 +35,9 @@ final class ClipboardStore: ObservableObject {
     private let maximumHistoryCount = 20
     private let maximumTextLength = 20_000
 
+    let fixedLog = HistoryLog(fileName: "fixed-history.txt")
+    let recentLog = HistoryLog(fileName: "recent-history.txt")
+
     private var lastChangeCount: Int
     private var timer: Timer?
 
@@ -99,6 +102,7 @@ final class ClipboardStore: ObservableObject {
             !$0.containsFiles && $0.text == validText
         }) else { return }
         fixedItems.append(ClipboardItem(text: validText))
+        fixedLog.append("added", validText)
         save(fixedItems, key: fixedItemsKey)
     }
 
@@ -113,6 +117,7 @@ final class ClipboardStore: ObservableObject {
         fixedItems.append(
             ClipboardItem(text: title, fileURLs: standardizedURLs)
         )
+        fixedLog.append("added", standardizedURLs.map(\.path).joined(separator: ", "))
         save(fixedItems, key: fixedItemsKey)
     }
 
@@ -132,6 +137,7 @@ final class ClipboardStore: ObservableObject {
                       !$0.containsFiles && $0.text == validText
                   }) else { continue }
             fixedItems.append(ClipboardItem(text: validText))
+            fixedLog.append("added", validText)
             importedCount += 1
         }
 
@@ -153,11 +159,15 @@ final class ClipboardStore: ObservableObject {
     }
 
     func removeFixedItem(id: UUID) {
+        if let item = fixedItems.first(where: { $0.id == id }) {
+            fixedLog.append("removed", item.text)
+        }
         fixedItems.removeAll { $0.id == id }
         save(fixedItems, key: fixedItemsKey)
     }
 
     func clearFixedItems() {
+        fixedItems.forEach { fixedLog.append("removed", $0.text) }
         fixedItems.removeAll()
         save(fixedItems, key: fixedItemsKey)
     }
@@ -190,6 +200,7 @@ final class ClipboardStore: ObservableObject {
 
     private func addToHistory(_ text: String) {
         guard let validText = validated(text) else { return }
+        recentLog.append("copied", validText)
         if let index = recentItems.firstIndex(where: {
             !$0.containsFiles && $0.text == validText
         }) {
@@ -205,6 +216,7 @@ final class ClipboardStore: ObservableObject {
 
     private func addFilesToHistory(_ fileURLs: [URL]) {
         let standardizedURLs = fileURLs.map { $0.standardizedFileURL }
+        recentLog.append("copied", standardizedURLs.map(\.path).joined(separator: ", "))
         if let index = recentItems.firstIndex(where: {
             $0.fileURLs == standardizedURLs
         }) {

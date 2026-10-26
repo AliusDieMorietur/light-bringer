@@ -101,6 +101,11 @@ struct ClipboardPanel: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
+                Button("History") { store.fixedLog.open() }
+                    .buttonStyle(.plain)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .help("Open the fixed items history file")
                 if !store.fixedItems.isEmpty {
                     Button("Delete All") {
                         isShowingClearFixedConfirmation = true
@@ -163,6 +168,11 @@ struct ClipboardPanel: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
+                Button("History") { store.recentLog.open() }
+                    .buttonStyle(.plain)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .help("Open the recent copies history file")
                 if !store.recentItems.isEmpty {
                     Button("Clear") { store.clearHistory() }
                         .buttonStyle(.plain)
@@ -222,6 +232,16 @@ struct ClipboardPanel: View {
                 .buttonStyle(.plain)
                 .disabled(isPinned)
                 .help(isPinned ? "Already in fixed items" : "Save to fixed items")
+            }
+
+            if isFixed {
+                Button { store.removeFixedItem(id: item.id) } label: {
+                    Image(systemName: "trash")
+                        .frame(width: 18, height: 18)
+                        .foregroundStyle(Color.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Delete from fixed items")
             }
 
             Button { copyItem(item) } label: {

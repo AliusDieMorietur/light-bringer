@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 APP_NAME="Light Bringer"
 EXECUTABLE_NAME="LightBringer"
 BUNDLE_ID="com.local.lightbringer"
+VERSION="$(tr -d '[:space:]' < "$(cd "$(dirname "$0")/.." && pwd)/VERSION")"
 APP_DIR="$ROOT_DIR/dist/$APP_NAME.app"
 ICON_SOURCE="$ROOT_DIR/Resources/AppIcon.svg"
 
@@ -39,7 +40,7 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>$VERSION</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>LSMinimumSystemVersion</key>

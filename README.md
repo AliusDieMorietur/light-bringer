@@ -79,6 +79,15 @@ To build the DMG yourself:
 ./scripts/build-dmg.sh   # creates dist/LightBringer-<version>.dmg
 ```
 
+## Releasing
+
+```sh
+./scripts/release.sh          # prompts: patch / minor / major / custom version
+./scripts/release.sh minor    # or pass the choice directly (also accepts 1.2.3)
+```
+
+The version lives in the `VERSION` file. The script bumps it, builds the DMG, commits, tags `vX.Y.Z`, pushes, and creates a GitHub release with the DMG attached (needs a clean `main` and the `gh` CLI logged in).
+
 ## License
 
 [MIT](LICENSE)

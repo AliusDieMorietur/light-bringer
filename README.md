@@ -86,7 +86,7 @@ To build the DMG yourself:
 ./scripts/release.sh minor    # or pass the choice directly (also accepts 1.2.3)
 ```
 
-The version lives in the `VERSION` file. The script bumps it, builds the DMG, commits, tags `vX.Y.Z`, pushes, and creates a GitHub release with the DMG attached (needs a clean `main` and the `gh` CLI logged in).
+The version lives in the `VERSION` file (shown in the app footer); the build number is the git commit count. Note changes under **Unreleased** in `CHANGELOG.md` as you work. The script bumps `VERSION`, moves those notes under the new version, builds the DMG, commits, tags `vX.Y.Z`, pushes, and creates a GitHub release with the DMG and those notes attached (needs a clean `main` and the `gh` CLI logged in).
 
 ## License
 

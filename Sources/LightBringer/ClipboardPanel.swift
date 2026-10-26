@@ -277,9 +277,12 @@ struct ClipboardPanel: View {
             .padding(.vertical, 8)
     }
 
+    private static let appVersion =
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
+
     private var footer: some View {
         HStack {
-            Text("Keeps the last 20 clipboard items")
+            Text("v\(Self.appVersion) · keeps the last 20 items")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()

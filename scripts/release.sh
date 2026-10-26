@@ -1,6 +1,6 @@
 #!/bin/bash
 # Usage: scripts/release.sh [patch|minor|major|X.Y.Z]
-# Bumps VERSION, builds the DMG, tags, pushes, and creates a GitHub release.
+# Bumps VERSION, updates CHANGELOG.md, builds the DMG, tags, pushes, and creates a GitHub release.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -39,13 +39,33 @@ read -r -p "Release $TAG (current $CURRENT)? [y/N] " CONFIRM
 [[ "$CONFIRM" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 1; }
 
 echo "$NEW" > VERSION
+
+# Move Unreleased changelog entries under the new version and keep them as release notes.
+NOTES="$(mktemp)"
+trap 'rm -f "$NOTES"' EXIT
+python3 - "$NEW" "$NOTES" <<'PY'
+import datetime, re, sys
+version, notes_path = sys.argv[1:3]
+text = open("CHANGELOG.md").read()
+m = re.search(r"## \[Unreleased\]\n(.*?)(?=\n## \[)", text, re.S)
+body = m.group(1).strip() if m else ""
+open(notes_path, "w").write(body + "\n")
+if m:
+    heading = f"## [Unreleased]\n\n## [{version}] - {datetime.date.today()}\n\n{body}\n"
+    text = text[:m.start()] + heading + text[m.end():]
+    open("CHANGELOG.md", "w").write(text)
+PY
 ./scripts/build-dmg.sh
 DMG="dist/LightBringer-$NEW.dmg"
 
-git add VERSION
+git add VERSION CHANGELOG.md
 git commit -m "Release $TAG"
 git tag "$TAG"
 git push origin main "$TAG"
 
-gh release create "$TAG" "$DMG" --title "Light Bringer $NEW" --generate-notes
+if [ -s "$NOTES" ] && [ "$(tr -d '[:space:]' < "$NOTES")" != "" ]; then
+    gh release create "$TAG" "$DMG" --title "Light Bringer $NEW" --notes-file "$NOTES"
+else
+    gh release create "$TAG" "$DMG" --title "Light Bringer $NEW" --generate-notes
+fi
 echo "Released $TAG"

@@ -7,6 +7,7 @@ EXECUTABLE_NAME="LightBringer"
 BUNDLE_ID="com.local.lightbringer"
 VERSION="$(tr -d '[:space:]' < "$(cd "$(dirname "$0")/.." && pwd)/VERSION")"
 APP_DIR="$ROOT_DIR/dist/$APP_NAME.app"
+BUILD="$(git -C "$(cd "$(dirname "$0")/.." && pwd)" rev-list --count HEAD 2>/dev/null || echo 1)"
 ICON_SOURCE="$ROOT_DIR/Resources/AppIcon.svg"
 
 cd "$ROOT_DIR"
@@ -42,7 +43,7 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
     <key>CFBundleShortVersionString</key>
     <string>$VERSION</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>$BUILD</string>
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>LSUIElement</key>
